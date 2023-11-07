@@ -15,8 +15,8 @@
 //! might not be what you expect.
 mod context;
 mod id;
-mod manager;
-mod processor;
+pub mod manager;
+pub mod processor;
 mod switch;
 #[allow(clippy::module_inception)]
 mod task;

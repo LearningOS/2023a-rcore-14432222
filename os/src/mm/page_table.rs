@@ -88,7 +88,7 @@ impl PageTable {
         }
     }
     /// Find PageTableEntry by VirtPageNum, create a frame for a 4KB page table if not exist
-    fn find_pte_create(&mut self, vpn: VirtPageNum) -> Option<&mut PageTableEntry> {
+    pub fn find_pte_create(&mut self, vpn: VirtPageNum) -> Option<&mut PageTableEntry> {
         let idxs = vpn.indexes();
         let mut ppn = self.root_ppn;
         let mut result: Option<&mut PageTableEntry> = None;
@@ -108,7 +108,7 @@ impl PageTable {
         result
     }
     /// Find PageTableEntry by VirtPageNum
-    fn find_pte(&self, vpn: VirtPageNum) -> Option<&mut PageTableEntry> {
+    pub fn find_pte(&self, vpn: VirtPageNum) -> Option<&mut PageTableEntry> {
         let idxs = vpn.indexes();
         let mut ppn = self.root_ppn;
         let mut result: Option<&mut PageTableEntry> = None;
@@ -212,4 +212,17 @@ pub fn translated_refmut<T>(token: usize, ptr: *mut T) -> &'static mut T {
         .translate_va(VirtAddr::from(va))
         .unwrap()
         .get_mut()
+}
+
+/// get point in kernel
+pub fn get_kernel_ptr<T>(token: usize, ptr: *const T) -> *mut T {
+    let page_table: PageTable = PageTable::from_token(token);
+    let start: usize = ptr as usize;
+    let strat_va: VirtAddr = VirtAddr::from(start);
+    let vpn: VirtPageNum = strat_va.floor();
+    let ppn: PhysAddr = page_table.translate(vpn).unwrap().ppn().into();
+    let offset: usize = strat_va.page_offset();
+    let phys_addr: usize = ppn.into();
+    let phys_ptr: *mut T = (offset + phys_addr) as *mut T;
+    phys_ptr
 }
