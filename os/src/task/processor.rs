@@ -9,6 +9,7 @@ use super::{fetch_task, TaskStatus};
 use super::{TaskContext, TaskControlBlock};
 use crate::config::MAX_SYSCALL_NUM;
 use crate::sync::UPSafeCell;
+
 use crate::trap::TrapContext;
 use alloc::sync::Arc;
 use lazy_static::*;
@@ -48,7 +49,7 @@ impl Processor {
 }
 
 lazy_static! {
-    /// Oh fuck dockment!!!
+    /// Oh fucking document!!!
     pub static ref PROCESSOR: UPSafeCell<Processor> = unsafe { UPSafeCell::new(Processor::new()) };
 }
 
@@ -70,6 +71,7 @@ pub fn run_tasks() {
             // release processor manually
             drop(processor);
             unsafe {
+                //println!("switch");
                 __switch(idle_task_cx_ptr, next_task_cx_ptr);
             }
         } else {
@@ -83,8 +85,9 @@ pub fn add_syscall_times(syscall_id: usize) {
     current_task()
         .unwrap()
         .inner_exclusive_access()
-        .add_syscall_times(syscall_id);
+        .add_syscall_times(syscall_id)
 }
+
 /// get syscall num
 pub fn get_syscall_num() -> [u32; MAX_SYSCALL_NUM] {
     current_task()
@@ -92,6 +95,7 @@ pub fn get_syscall_num() -> [u32; MAX_SYSCALL_NUM] {
         .inner_exclusive_access()
         .get_syscall_num()
 }
+
 /// get task status
 pub fn get_task_status() -> TaskStatus {
     current_task()
@@ -99,6 +103,7 @@ pub fn get_task_status() -> TaskStatus {
         .inner_exclusive_access()
         .get_task_status()
 }
+
 /// get start time
 pub fn get_start_time() -> usize {
     current_task()
@@ -106,6 +111,7 @@ pub fn get_start_time() -> usize {
         .inner_exclusive_access()
         .get_start_time()
 }
+
 /// mmap
 pub fn mmap(start: usize, len: usize, port: usize) -> isize {
     current_task()
@@ -113,20 +119,23 @@ pub fn mmap(start: usize, len: usize, port: usize) -> isize {
         .inner_exclusive_access()
         .mmap(start, len, port)
 }
-/// mumap
-pub fn mumap(start: usize, len: usize) -> isize {
+
+/// munap
+pub fn munmap(start: usize, len: usize) -> isize {
     current_task()
         .unwrap()
         .inner_exclusive_access()
-        .mumap(start, len)
+        .munmap(start, len)
 }
+
 /// set priority
-pub fn set_priority(priority: isize) -> isize {
+pub fn set_priority(prio: isize) -> isize {
     current_task()
         .unwrap()
         .inner_exclusive_access()
-        .set_priority(priority)
+        .set_priority(prio)
 }
+
 /// Get current task through take, leaving a None in its place
 pub fn take_current_task() -> Option<Arc<TaskControlBlock>> {
     PROCESSOR.exclusive_access().take_current()

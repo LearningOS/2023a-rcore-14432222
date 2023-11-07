@@ -69,7 +69,7 @@ pub struct TaskControlBlockInner {
     /// Program break
     pub program_brk: usize,
 
-    /// syscall times
+    /// system times
     pub syscall_times: [u32; MAX_SYSCALL_NUM],
 
     /// start time
@@ -97,31 +97,38 @@ impl TaskControlBlockInner {
     pub fn is_zombie(&self) -> bool {
         self.get_status() == TaskStatus::Zombie
     }
-    pub fn is_ready(&self) -> bool {
-        self.get_status() == TaskStatus::Ready
+
+    pub fn set_priority(&mut self, _prio: isize) -> isize {
+        self.priority = _prio;
+        self.priority
     }
+
+    /// add syscall time
     pub fn add_syscall_times(&mut self, syscall_id: usize) {
-        self.syscall_times[syscall_id] = self.syscall_times[syscall_id] + 1;
+        self.syscall_times[syscall_id] += 1;
     }
+
+    /// get syscall num
     pub fn get_syscall_num(&self) -> [u32; MAX_SYSCALL_NUM] {
         self.syscall_times
     }
+    /// get task status
     pub fn get_task_status(&self) -> TaskStatus {
-        self.task_status
+        self.get_status()
     }
+    ///get start time
     pub fn get_start_time(&self) -> usize {
         self.start_time
     }
+
+    /// mmap
     pub fn mmap(&mut self, start: usize, len: usize, port: usize) -> isize {
         self.memory_set.mmap(start, len, port)
     }
-    pub fn mumap(&mut self, start: usize, len: usize) -> isize{
-        self.memory_set.munmap(start, len)
-    }
 
-    pub fn set_priority(&mut self, priority: isize) -> isize {
-        self.priority = priority;
-        priority
+    /// mumap
+    pub fn munmap(&mut self, start: usize, len: usize) -> isize {
+        self.memory_set.munmap(start, len)
     }
 }
 
@@ -156,8 +163,8 @@ impl TaskControlBlock {
                     exit_code: 0,
                     heap_bottom: user_sp,
                     program_brk: user_sp,
-                    syscall_times: [0; MAX_SYSCALL_NUM],
                     start_time: 0,
+                    syscall_times: [0; MAX_SYSCALL_NUM],
                     stride: 0,
                     priority: 16,
                 })
@@ -233,8 +240,8 @@ impl TaskControlBlock {
                     exit_code: 0,
                     heap_bottom: parent_inner.heap_bottom,
                     program_brk: parent_inner.program_brk,
-                    syscall_times: [0; MAX_SYSCALL_NUM],
                     start_time: 0,
+                    syscall_times: [0; MAX_SYSCALL_NUM],
                     stride: 0,
                     priority: 16,
                 })
